@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html>
+<head><meta name="generator" content="Hexo 3.9.0">
+  <meta charset="utf-8">
+  
+
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http://yoursite.com/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Hexo">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+</html>
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-QWebengineView内容查询" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/09/04/QWebengineView内容查询/" class="article-date">
+  <time datetime="2019-09-04T09:00:03.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/09/04/QWebengineView内容查询/">QWebEngineView查询内容</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>##缘由<br>因为手上有个Qt项目从Qt5.2升级到了Qt5.12版本，原有的QWebView的一系列控件无法使用，全部的内容都需要更换为QWebEngineView包括原有的一些解析HTML内容的方法都需要修改</p>
+<p>###问题<br>Qt5.2的WebKit支持同步的查询方法</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">   <span class="comment">//Qt5.2支持的一种同步解析HTML的findAll()方法</span></span><br><span class="line">QWebPage webPage;</span><br><span class="line">webPage.mainFrame()-&gt;setContent(buffer);</span><br><span class="line">QWebElement Elent = webPage.mainFrame()-&gt;documentElement();</span><br><span class="line">   QString strUrltitle = tr(<span class="string">"Link"</span>);</span><br><span class="line">   QWebElementCollection ElentCollent = Elent.findAll(<span class="string">"title"</span>);</span><br><span class="line">   <span class="keyword">int</span> nCount = ElentCollent.count();</span><br><span class="line"></span><br><span class="line">   <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; nCount; i++) &#123;</span><br><span class="line">       QWebElement ElentCollent1 = ElentCollent.at(i);</span><br><span class="line">       strUrltitle = ElentCollent1.toPlainText();</span><br><span class="line">       <span class="keyword">break</span>;</span><br><span class="line">   &#125;</span><br></pre></td></tr></table></figure>
+
+<p>Qt5.12之后，Webkit内核被替换为了Chorme内核的浏览器，此内核不支持同步操作，需要修改为异步操作runJavaScript方法</p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><span class="line">   <span class="keyword">void</span> QWebEnginePage::runJavaScript(<span class="keyword">const</span> QString &amp;scriptSource, <span class="keyword">const</span> QWebEngineCallback&lt;<span class="keyword">const</span> QVariant &amp;&gt; &amp;resultCallback);</span><br><span class="line">   <span class="comment">/*执行脚本后，将使用上次执行的语句的结果调用ResultCallback。resultcallback可以是函数指针、函数或lambda中的任何一个，并且应采用qvariant参数。*/</span></span><br><span class="line">   <span class="comment">/*page.runJavaScript("document.title", [](const QVariant &amp;v) &#123; qDebug() &lt;&lt; v.toString(); &#125;);*/</span></span><br><span class="line"><span class="keyword">if</span> (m_webPage == <span class="literal">nullptr</span>)</span><br><span class="line">&#123;</span><br><span class="line">	m_webPage = <span class="keyword">new</span> QWebEnginePage;</span><br><span class="line">	connect(m_webPage, &amp;QWebEnginePage::loadFinished, <span class="keyword">this</span>, [=](<span class="keyword">bool</span> ok) &#123;</span><br><span class="line">		<span class="comment">//如果加载失败，加载接下来一条消息</span></span><br><span class="line">		<span class="comment">//加载成功，就在执行完js脚本后再加载接下来的url</span></span><br><span class="line">		qDebug() &lt;&lt; <span class="string">"loadFinished"</span> &lt;&lt; ok;</span><br><span class="line">		<span class="keyword">if</span> (ok)</span><br><span class="line">		&#123;</span><br><span class="line">			<span class="comment">//此处是获取HTML标题、图标、描述的代码</span></span><br><span class="line">			QString js = <span class="string">"console.log(document.title);"</span></span><br><span class="line">				<span class="string">"var array = new Array();"</span></span><br><span class="line">				<span class="string">"array.push(document.title);"</span></span><br><span class="line">				<span class="string">"var descList = document.getElementsByName('description');"</span></span><br><span class="line">				<span class="string">"for (var i = 0; i&lt;descList.length; i++)"</span></span><br><span class="line">				<span class="string">"&#123;"</span></span><br><span class="line">				<span class="string">"   if(descList[i].content !== undefined)"</span></span><br><span class="line">				<span class="string">"	&#123;"</span></span><br><span class="line">				<span class="string">"		array.push(descList[i].content);"</span></span><br><span class="line">				<span class="string">"		break;"</span></span><br><span class="line">				<span class="string">"	&#125;"</span></span><br><span class="line">				<span class="string">"&#125;"</span></span><br><span class="line">				<span class="string">"if(array.length === 1)"</span></span><br><span class="line">				<span class="string">"&#123;"</span></span><br><span class="line">				<span class="string">"	array.push('undefined')"</span></span><br><span class="line">				<span class="string">"&#125;"</span></span><br><span class="line">				<span class="string">"var list = document.getElementsByTagName('link');"</span></span><br><span class="line">				<span class="string">"for (var i = 0; i&lt;list.length; i++)"</span></span><br><span class="line">				<span class="string">"&#123;"</span></span><br><span class="line">				<span class="string">"	if(list[i].href !== undefined)"</span></span><br><span class="line">				<span class="string">"	&#123;"</span></span><br><span class="line">				<span class="string">"		if(list[i].href.search('.ico') !== -1)"</span></span><br><span class="line">				<span class="string">"		&#123;"</span></span><br><span class="line">				<span class="string">"			array.push(list[i].href);"</span></span><br><span class="line">				<span class="string">"			break;"</span></span><br><span class="line">				<span class="string">"		&#125;"</span></span><br><span class="line">				<span class="string">"	&#125;"</span></span><br><span class="line">				<span class="string">"&#125;"</span></span><br><span class="line">				<span class="string">"if(array.length === 2)"</span></span><br><span class="line">				<span class="string">"&#123;"</span></span><br><span class="line">				<span class="string">"	array.push('undefined')"</span></span><br><span class="line">				<span class="string">"&#125;"</span></span><br><span class="line">				<span class="string">"array"</span>;</span><br><span class="line">			m_webPage-&gt;runJavaScript(js,</span><br><span class="line">				[=](<span class="keyword">const</span> QVariant &amp; resultArray) &#123;</span><br><span class="line">                   <span class="comment">//此处就可以拿到array的内容</span></span><br><span class="line">				QVariantList itemList = resultArray.value&lt;QVariantList&gt;();</span><br><span class="line">			&#125;);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/09/04/QWebengineView内容查询/" data-id="ck053z1yr0001z0tf5l511864" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-QQuickImageProvider探究" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/30/QQuickImageProvider探究/" class="article-date">
+  <time datetime="2019-08-30T09:00:03.000Z" itemprop="datePublished">2019-08-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/08/30/QQuickImageProvider探究/">QQuickImageProvider探究</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h2 id="QQuickImagePorvider简介"><a href="#QQuickImagePorvider简介" class="headerlink" title="QQuickImagePorvider简介"></a>QQuickImagePorvider简介</h2><p>QQuickImageProvider类提供了一个接口，用于支持qml中的pixmap和线程化图像请求<br>QQuickImageProvider用于在QML应用程序中提供高级图像加载功能。它允许qml中的图像为：</p>
+<ul>
+<li>使用QPixmap而不是实际图像文件加载</li>
+<li>在单独的线程中异步加载</li>
+</ul>
+<h3 id="C-构造QQuickImagePorvider类"><a href="#C-构造QQuickImagePorvider类" class="headerlink" title="C++构造QQuickImagePorvider类"></a>C++构造QQuickImagePorvider类</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">ColorImageProvider</span> :</span> <span class="keyword">public</span> QQuickImageProvider</span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    ColorImageProvider()</span><br><span class="line">               : QQuickImageProvider(QQuickImageProvider::Pixmap)</span><br><span class="line">    &#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function">QPixmap <span class="title">requestPixmap</span><span class="params">(<span class="keyword">const</span> QString &amp;id, QSize *size, <span class="keyword">const</span> QSize &amp;requestedSize)</span> override</span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">       <span class="keyword">int</span> width = <span class="number">100</span>;</span><br><span class="line">       <span class="keyword">int</span> height = <span class="number">50</span>;</span><br><span class="line"></span><br><span class="line">       <span class="keyword">if</span> (size)</span><br><span class="line">          *size = QSize(width, height);</span><br><span class="line">       <span class="function">QPixmap <span class="title">pixmap</span><span class="params">(requestedSize.width() &gt; <span class="number">0</span> ? requestedSize.width() : width,</span></span></span><br><span class="line"><span class="function"><span class="params">                      requestedSize.height() &gt; <span class="number">0</span> ? requestedSize.height() : height)</span></span>;</span><br><span class="line">       pixmap.fill(QColor(id).rgba());</span><br><span class="line">       <span class="keyword">return</span> pixmap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<h3 id="C-中注册QQuickImagePorvider"><a href="#C-中注册QQuickImagePorvider" class="headerlink" title="C++中注册QQuickImagePorvider"></a>C++中注册QQuickImagePorvider</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">int</span> argc, <span class="keyword">char</span> *argv[])</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">  QQuickView view;</span><br><span class="line">  QQmlEngine *engine = view.engine();</span><br><span class="line">  **engine-&gt;addImageProvider(QLatin1String(<span class="string">"myimageprovider"</span>), <span class="keyword">new</span> ColorImageProvider);**</span><br><span class="line">  view.setSource(QUrl::fromLocalFile(QStringLiteral(<span class="string">"imageprovider-example.qml"</span>)));</span><br><span class="line">  view.show();</span><br><span class="line">  <span class="keyword">return</span> app.exec();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用Qml中使用QQuickImagePorvider"><a href="#使用Qml中使用QQuickImagePorvider" class="headerlink" title="使用Qml中使用QQuickImagePorvider"></a>使用Qml中使用QQuickImagePorvider</h3><p>标识符’myimageprovider’不区分大小写，但URL的其余部分将以保留大小写的形式传递。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Image&#123; </span><br><span class="line">    source：<span class="string">"image://myimageprovider/image.png"</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这指定图像应由名为”MyImageProvider”的图像提供程序加载，要加载的图像名为’image.png’。<br>Qml引擎根据已通过QQmlEngine::addImageProvider().注册的提供程序调用相应的图像提供程序。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/08/30/QQuickImageProvider探究/" data-id="ck053z1yn0000z0tfqzsj7nhy" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/08/30/hello-world/" class="article-date">
+  <time datetime="2019-08-30T08:31:03.751Z" itemprop="datePublished">2019-08-30</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/08/30/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/08/30/hello-world/" data-id="ck053z1z00002z0tfxtolrv68" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/09/">September 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/08/">August 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/09/04/QWebengineView内容查询/">QWebEngineView查询内容</a>
+          </li>
+        
+          <li>
+            <a href="/2019/08/30/QQuickImageProvider探究/">QQuickImageProvider探究</a>
+          </li>
+        
+          <li>
+            <a href="/2019/08/30/hello-world/">Hello World</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
